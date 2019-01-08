@@ -27,28 +27,29 @@ The variables included in this dataset are:
 First, the default of all code chunks in this R markdown document is set to echo=TRUE, ensuring that the code used to generate the output
 is presented in the document. The R environment is set up by loading necessary packages. Setting the working directory is not necessary since the Rmd file uses the directory it resides in as the base directory. 
 
-```{r}
+
+```r
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, message=FALSE, warning=FALSE}
+
+```r
 library(rstudioapi)
 library(dplyr)
 library(ggplot2)
 library(knitr)
-
 ```
 
 ## 4. Loading and preprocessing the data
 Load the data (i.e. read.csv()), Process/transform the data (if necessary) into a format suitable for the analysis
 
-```{r, message=FALSE}
+
+```r
 # The data is directly loaded from the zipfile activity.zip: 
 data <- read.csv(unzip("activity.zip", files="activity.csv"))
 
 # Change the date variable to date format:
 data$date <- as.Date(data$date)
-
 ```
 
 
@@ -56,7 +57,8 @@ data$date <- as.Date(data$date)
 For this part of the assignment, the missing values in the dataset are ignored.
 
 #### 5.1 Calculate the total number of steps taken per day
-```{r}
+
+```r
 # Total steps per day:
 steps_perday <- data %>% 
   group_by(date) %>% 
@@ -65,7 +67,8 @@ steps_perday <- data %>%
 
 #### 5.2 Make a histogram of the total number of steps taken each day
 
-```{r}
+
+```r
 hist(steps_perday$steps, 
      main = "Histogram for the total number of steps taken each day",
      xlab = "Number of steps",
@@ -73,19 +76,23 @@ hist(steps_perday$steps,
      col = "chartreuse4")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
 #### 5.3 Calculate and report the mean and median of the total number of steps taken per day
-```{r}
+
+```r
 mean_total_steps <- round(mean(steps_perday$steps, na.rm=TRUE), 1)
 median_total_steps <- round(median(steps_perday$steps, na.rm=TRUE), 1)
 ```
 
-The mean of the total number of steps taken per day is: `r format(mean_total_steps, scientific=FALSE)`.
-The mean of the total number of steps taken per day is: `r format(median_total_steps, scientific=FALSE)`.
+The mean of the total number of steps taken per day is: 10766.2.
+The mean of the total number of steps taken per day is: 10765.
 
 ## 6. What is the average daily activity pattern?
 
 #### 6.1 Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-```{r}
+
+```r
 # Group the data by interval:
 daily_pattern <- data %>% 
   group_by(interval) %>% 
@@ -96,14 +103,16 @@ ggplot(data=daily_pattern, aes(x=interval, y=mean)) +
     geom_line()
 ```
 
-#### 6.2 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{r}
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
+#### 6.2 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```r
 max_interval <- daily_pattern[which.max(daily_pattern$mean), 'interval']
 ```
 
 The 5-minute interval that, on average across all the days in the dataset, contains the 
-maximum number of steps is: `r max_interval`.
+maximum number of steps is: 835.
 
 
 ## 7. Imputing missing values
@@ -111,24 +120,26 @@ Note that there are a number of days/intervals where there are missing values (c
 
 #### 7.1 Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NA)
 
-```{r}
+
+```r
 nrows_withNA <- sum(is.na(data$steps))
 ```
 
-The total number of missing values in the dataset (i.e. the total number of rows with NA) is: `r nrows_withNA`.
+The total number of missing values in the dataset (i.e. the total number of rows with NA) is: 2304.
 
 #### 7.2 Devise a strategy for filling in all of the missing values in the dataset & create a new dataset that is equal to the original dataset but with the missing data filled in.
 The chosen strategy for filling in all of the missing values in the dataset is: filling in the mean for that date.
 
-```{r}
+
+```r
 data_2 <- data %>% 
     group_by(interval) %>% 
     mutate(steps = ifelse(is.na(steps), mean(steps, na.rm = T), steps))
 ```
 
 #### 7.3 Make a histogram of the total number of steps taken each day
-```{r}
 
+```r
 # Group the data based on date:
 steps_perday2 <- data_2 %>% 
   group_by(date) %>% 
@@ -141,25 +152,35 @@ hist(steps_perday2$steps,
      col = "chartreuse4")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+
 
 #### 7.2 Calculate and report the mean and median total number of steps taken per day. 
-```{r}
+
+```r
 mean_total_steps2 <- round(mean(steps_perday2$steps, na.rm=TRUE), 1)
 median_total_steps2 <- round(median(steps_perday2$steps, na.rm=TRUE), 1)
 ```
 
-The mean of the total number of steps taken per day is: `r mean_total_steps2`.
-The mean of the total number of steps taken per day is: `r median_total_steps2`.
+The mean of the total number of steps taken per day is: 1.07662\times 10^{4}.
+The mean of the total number of steps taken per day is: 1.07662\times 10^{4}.
 
 #### 7.3 Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
-```{r}
+
+```r
 library(knitr)
 df <- data.frame("type" = c("With NA's", "without NA's (filled by mean)"),
                  "mean"= c(mean_total_steps, mean_total_steps2),
                  "median" = c(median_total_steps, median_total_steps2))
 kable(df)
-
 ```
+
+
+
+type                                mean    median
+------------------------------  --------  --------
+With NA's                        10766.2   10765.0
+without NA's (filled by mean)    10766.2   10766.2
 
 The strategy of filling in the missing values with the mean of that day does not have any consequences for the mean. However, the median has become the same as the mean. This makes sense since all missing values are now filled in with the mean, which increases the number of times this value is present in the dataset.
 
@@ -168,14 +189,14 @@ The strategy of filling in the missing values with the mean of that day does not
 For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
 
 ### 8.1 Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
-```{r}
-data_2$day_type <- ifelse(weekdays(data_2$date) %in% c("zaterdag", "zondag"), "weekend", "weekday")
 
+```r
+data_2$day_type <- ifelse(weekdays(data_2$date) %in% c("zaterdag", "zondag"), "weekend", "weekday")
 ```
 
 ### 8.2 Make a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
-```{r}
 
+```r
 # Group the data by interval:
 daily_pattern2 <- data_2 %>% 
   group_by(interval, day_type) %>% 
@@ -187,5 +208,7 @@ g + geom_line() + facet_wrap(~day_type, nrow=2, ncol=1) +
 ggtitle("Average number of steps taken per 5-minute interval, per type of day") +
 ylab("Average number of steps")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 
 
